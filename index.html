@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اصغر طلا</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #121212; color: #fff; }
+        .gold-bg { background-color: #d4af37; color: #000; }
+        .gold-text { color: #d4af37; }
+        .card { background-color: #1e1e1e; border: 1px solid #333; }
+        .product-img { width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #d4af37; background-color: #2a2a2a; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="card sticky top-0 z-50 px-4 py-3 flex justify-between items-center gap-4">
+        <div class="flex items-center gap-2">
+            <div class="gold-bg w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl">اط</div>
+            <h1 class="text-xl font-bold gold-text hidden sm:block">اصغر طلا</h1>
+        </div>
+        <div class="flex-1 max-w-md relative">
+            <input type="text" id="search" placeholder="جستجو..." class="w-full bg-[#2a2a2a] border border-[#444] rounded-full py-2 px-4 pr-10 text-sm text-white focus:outline-none focus:border-[#d4af37]">
+            <i class="fa-solid fa-search absolute right-4 top-3 text-gray-400"></i>
+        </div>
+        <button onclick="toggleCart()" class="relative bg-[#2a2a2a] w-10 h-10 rounded-full border border-[#444] flex items-center justify-center">
+            <i class="fa-solid fa-cart-shopping text-lg gold-text"></i>
+            <span id="cart-badge" class="hidden absolute -top-1 -right-1 gold-bg text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+        </button>
+    </header>
+
+    <section class="max-w-5xl mx-auto w-full p-4 mt-2">
+        <div class="relative rounded-2xl overflow-hidden h-64 sm:h-80 bg-gradient-to-l from-black to-[#1a1a1a] border border-[#333] flex items-center px-6 sm:px-12">
+            <div class="relative z-10 max-w-lg space-y-3">
+                <span class="gold-text bg-[#d4af37]/10 px-3 py-1 rounded-full text-xs border border-[#d4af37]/30">کالکشن ویژه</span>
+                <h2 class="text-3xl sm:text-5xl font-bold text-white leading-tight">تابلو، شمشیر<br>و تزیینات</h2>
+                <p class="text-gray-400 text-sm">نهایت شکوه و اصالت با محصولات دست‌ساز.</p>
+                <button class="gold-bg px-6 py-2 rounded-lg font-bold text-sm mt-2">مشاهده کالکشن</button>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-5xl mx-auto w-full px-4 flex-1 pb-10">
+        <div id="grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+    </main>
+
+    <div id="drawer" class="fixed inset-0 bg-black/80 z-50 hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-80 bg-[#1e1e1e] border-r border-[#333] p-4 flex flex-col">
+            <div class="flex justify-between items-center border-b border-[#333] pb-3 mb-3">
+                <h3 class="font-bold">سبد خرید</h3>
+                <button onclick="toggleCart()"><i class="fa-solid fa-xmark text-gray-400 hover:text-white"></i></button>
+            </div>
+            <div id="cart-list" class="flex-1 overflow-y-auto space-y-3"></div>
+            <div class="border-t border-[#333] pt-3 mt-3">
+                <div class="flex justify-between mb-3 text-sm"><span>جمع کل:</span><span id="total" class="gold-text font-bold">۰</span></div>
+                <button class="gold-bg w-full py-2 rounded-lg font-bold">ثبت سفارش</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const products = [
+            {id:1, name:"شمشیر دست‌ساز فولادی", shop:"کارگاه اصغر طلا", price:4500000, old:5200000, icon:"⚔️"},
+            {id:2, name:"تابلو نقاشی خط", shop:"گالری هنر", price:2800000, old:3100000, icon:"🖼️"},
+            {id:3, name:"سپر چرمی و فلزی", shop:"کارگاه اصغر طلا", price:3200000, old:3500000, icon:"🛡️"},
+            {id:4, name:"شمشیر سامورایی", shop:"فروشگاه سامورایی", price:6500000, old:7000000, icon:"🗡️"},
+            {id:5, name:"تابلو میناکاری", shop:"گالری هنر", price:5200000, old:5800000, icon:"🎨"},
+            {id:6, name:"مجسمه برنزی", shop:"دکوراسیون پارسی", price:3800000, old:4100000, icon:"🏺"},
+            {id:7, name:"خنجر عربی", shop:"کارگاه اصغر طلا", price:2900000, old:3400000, icon:"🔪"},
+            {id:8, name:"تابلوفرش دستباف", shop:"فرش اصیل", price:12000000, old:15000000, icon:"🧶"}
+        ];
+
+        let cart = [];
+
+        function fmt(n){ return new Intl.NumberFormat('fa-IR').format(n) + " تومان"; }
+
+        function renderGrid() {
+            document.getElementById('grid').innerHTML = products.map(p => `
+                <div class="card rounded-xl overflow-hidden flex flex-col group hover:border-[#d4af37] transition">
+                    <div class="product-img">${p.icon}</div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1"><i class="fa-solid fa-store"></i> ${p.shop}</div>
+                            <h3 class="text-sm font-bold mb-2 line-clamp-2">${p.name}</h3>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 line-through">${fmt(p.old)}</div>
+                            <div class="gold-text font-bold mb-2">${fmt(p.price)}</div>
+                            <button onclick="addToCart(${p.id})" class="w-full border border-[#444] hover:gold-bg hover:text-black py-1.5 rounded-lg text-xs transition">افزودن</button>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function toggleCart() { document.getElementById('drawer').classList.toggle('hidden'); }
+
+        function addToCart(id) {
+            let item = cart.find(c => c.id === id);
+            if(item) item.qty++;
+            else { let p = products.find(p => p.id === id); cart.push({...p, qty: 1}); }
+            updateCart(); toggleCart();
+        }
+
+        function updateCart() {
+            let badge = document.getElementById('cart-badge');
+            let totalCount = cart.reduce((s,i) => s + i.qty, 0);
+            let totalPrice = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+            badge.innerText = totalCount;
+            badge.classList.toggle('hidden', totalCount === 0);
+            document.getElementById('total').innerText = fmt(totalPrice);
+
+            document.getElementById('cart-list').innerHTML = cart.map(i => `
+                <div class="flex gap-2 items-center bg-[#2a2a2a] p-2 rounded-lg">
+                    <div class="w-10 h-10 text-xl flex items-center justify-center bg-[#1a1a1a] rounded">${i.icon}</div>
+                    <div class="flex-1 text-xs">
+                        <div class="font-bold mb-1">${i.name}</div>
+                        <div class="gold-text">${fmt(i.price)}</div>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <button onclick="changeQty(${i.id}, 1)" class="w-6 h-6 bg-[#444] rounded hover:gold-bg hover:text-black">+</button>
+                        <span>${i.qty}</span>
+                        <button onclick="changeQty(${i.id}, -1)" class="w-6 h-6 bg-[#444] rounded hover:gold-bg hover:text-black">-</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function changeQty(id, change) {
+            let item = cart.find(c => c.id === id);
+            if(!item) return;
+            item.qty += change;
+            if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
+            updateCart();
+        }
+
+        renderGrid();
+    </script>
+</body>
+</html>
